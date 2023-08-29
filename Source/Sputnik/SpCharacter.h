@@ -30,5 +30,27 @@ public:
 protected:
 	void MoveForward(float AxisValue);
 	void MoveRight(float AxisValue);
+	void Aiming();
+	void NotAiming();
+
+
+public:
+	void Shoot();
+
+private:
+	UPROPERTY(EditAnywhere)
+		float MaxRange = 1000;
+	UPROPERTY(VisibleAnywhere)
+		USkeletalMeshComponent* SpMesh;
+
+	UPROPERTY(EditAnywhere)
+		UParticleSystem* MuzzleEffect;
+	UPROPERTY(EditAnywhere)
+		UParticleSystem* ImpactEffect;
+	UPROPERTY(EditAnywhere)
+		USoundBase* MuzzleSound;
+	UPROPERTY(EditAnywhere)
+		USoundBase* ImpactSound;
+
 
 };
