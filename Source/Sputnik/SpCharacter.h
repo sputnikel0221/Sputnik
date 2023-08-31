@@ -34,6 +34,7 @@ protected:
 	void Aiming();
 	void NotAiming();
 	void Roll();
+	void BlockKey();
 
 public:
 	void Shoot();
@@ -75,4 +76,6 @@ private:
 
 	float BPMovementAngle;
 
+	bool bIsRolling = false;
+	bool bBlockRolling = false;
 };

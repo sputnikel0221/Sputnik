@@ -8,7 +8,8 @@
 #include "SpAnimInstance.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "SpPlayerController.h"
-#include "Kismet/KismetSystemLibrary.h"
+#include "Kismet/KismetMathLibrary.h"
+#include "TimerManager.h"
 
 // Sets default values
 ASpCharacter::ASpCharacter()
@@ -88,10 +89,21 @@ void ASpCharacter::MoveRight(float AxisValue)
 
 void ASpCharacter::Aiming()
 {
+	if (bIsRolling)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Aiming - Block"));
+		return;
+	}
+
+	UE_LOG(LogTemp, Warning, TEXT("Aiming"));
 	DeltaSec = GetWorld()->GetDeltaSeconds();
 
 	if (SpAnimInstance == nullptr)	return;
-	SpAnimInstance->changeAming();
+	
+	if (!SpAnimInstance->getbAiming())
+	{
+		SpAnimInstance->changeAming();
+	}
 
 	if (SpArm == nullptr)	return;
 	//SpArm->TargetArmLength = FMath::FInterpTo(BArmLen, AArmLen, DeltaSec, InterpSpeed);
@@ -99,10 +111,21 @@ void ASpCharacter::Aiming()
 
 void ASpCharacter::NotAiming()
 {
+	if (bIsRolling)
+	{
+		UE_LOG(LogTemp, Error, TEXT("NotAiming - Block"));
+		return;
+	}
+
 	DeltaSec = GetWorld()->GetDeltaSeconds();
 
-	if (SpAnimInstance == nullptr)	return;
-	SpAnimInstance->changeAming();
+	if (SpAnimInstance == nullptr)		return;
+
+	if (SpAnimInstance->getbAiming())
+	{
+		SpAnimInstance->changeAming();
+	}
+
 
 	if (SpArm == nullptr)	return;
 	//SpArm->TargetArmLength = FMath::FInterpTo(AArmLen, BArmLen, DeltaSec, InterpSpeed);
@@ -110,10 +133,19 @@ void ASpCharacter::NotAiming()
 
 void ASpCharacter::Roll()
 {
+	if (bIsRolling || bBlockRolling)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Rolling - Block"));
+		return;
+	}
+
+	bIsRolling = true;
+	bBlockRolling = true;
+
 	// 회전 고정 해제
 	this->bUseControllerRotationYaw = false;
-	
-	
+
+
 	if (SpAnimInstance == nullptr)		return;
 	//UE_LOG(LogTemp, Error, TEXT("%f"), SpAnimInstance->GetPlayerDirection());
 
@@ -122,25 +154,23 @@ void ASpCharacter::Roll()
 	FRotator rotator = { ActorRotator.Pitch, ActorRotator.Yaw + SpAnimInstance->GetPlayerDirection(), ActorRotator.Roll };
 	this->SetActorRelativeRotation(rotator);
 
-	/*
-	PlayerController = Cast<APlayerController>(GetController());
-	if (PlayerController != nullptr)
-	{
-		PlayerController->SetControlRotation({ 0.0f, GetActorRotation().Yaw, 0.0f});
-	}
-	*/
-
 	// AnimInstance Play Montage 
 	SpAnimInstance->PlayRollMontage();
+
 }
 
+void ASpCharacter::BlockKey()
+{
+	bBlockRolling = false;
+}
 
 void ASpCharacter::Shoot()
 {
-	if (!SpAnimInstance->getbAiming())
+	if (!SpAnimInstance->getbAiming() || bIsRolling)
 	{
 		return;
 	}
+	UE_LOG(LogTemp, Error, TEXT("%d : %d"), SpAnimInstance->getbAiming(), bIsRolling);
 
 	// Muzzle Effect & Sound
 	UGameplayStatics::SpawnEmitterAttached(MuzzleEffect, SpMesh, TEXT("Muzzle_01"));
@@ -179,7 +209,12 @@ void ASpCharacter::Shoot()
 
 void ASpCharacter::OnRollMontageEnded(UAnimMontage* Montage, bool bInterrupted)
 {
+	// 설정 원래대로
 	this->bUseControllerRotationYaw = true;
+	bIsRolling = false;
+
+	FTimerHandle TimerHandle;
+	GetWorldTimerManager().SetTimer(TimerHandle, this, &ASpCharacter::BlockKey, 0.2f, false);
 }
 
 
