@@ -18,6 +18,7 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+	virtual void PostInitializeComponents() override;
 
 public:	
 	// Called every frame
@@ -32,7 +33,7 @@ protected:
 	void MoveRight(float AxisValue);
 	void Aiming();
 	void NotAiming();
-
+	void Roll();
 
 public:
 	void Shoot();
@@ -52,5 +53,21 @@ private:
 	UPROPERTY(EditAnywhere)
 		USoundBase* ImpactSound;
 
+	UPROPERTY()
+		class USpAnimInstance* SpAnimInstance;
+
+	// SpringArm Lerp
+	UPROPERTY()
+		class USpringArmComponent* SpArm;
+	UPROPERTY()
+		float DeltaSec;
+	UPROPERTY(EditAnywhere, Meta = (AllowPrivateAccess = true), Category = "SpringArm")
+		float InterpSpeed = 0.5f;
+	UPROPERTY(EditAnywhere, Meta = (AllowPrivateAccess = true), Category = "SpringArm")
+		float AArmLen = 150.0f;
+	UPROPERTY(EditAnywhere, Meta = (AllowPrivateAccess = true), Category = "SpringArm")
+		float BArmLen = 80.0f;
+
+	float BPMovementAngle;
 
 };

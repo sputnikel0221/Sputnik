@@ -20,4 +20,7 @@ private:
 
 protected:
 	void BeginPlay() override;
+
+public:
+	void RollRotate(FRotator direction);
 };

@@ -14,3 +14,9 @@ void ASpPlayerController::BeginPlay()
 		HUD->AddToViewport();
 	}
 }
+
+// Roll to direction
+void ASpPlayerController::RollRotate(FRotator direction)
+{
+	SetControlRotation(direction);
+}
