@@ -18,7 +18,7 @@ private:
 		UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = Attack, Meta = (AllowPrivateAccess = true))
 		bool bIsAiming;
 		UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category = Attack, Meta = (AllowPrivateAccess = true))
-			bool playerDirection;
+			float playerDirection;
 
 protected:
 	void BeginPlay();

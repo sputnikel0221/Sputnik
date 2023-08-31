@@ -8,6 +8,7 @@
 #include "SpAnimInstance.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "SpPlayerController.h"
+#include "Kismet/KismetSystemLibrary.h"
 
 // Sets default values
 ASpCharacter::ASpCharacter()
@@ -34,6 +35,10 @@ void ASpCharacter::PostInitializeComponents()
 
 	// Find AnimInstance from Mesh
 	SpAnimInstance = Cast<USpAnimInstance>(GetMesh()->GetAnimInstance());
+	SpAnimInstance->OnMontageEnded.AddDynamic(this, &ASpCharacter::OnRollMontageEnded);
+
+	// GetPlayerController 
+	PlayerController = Cast<APlayerController>(GetController());
 }
 
 // Called every frame
@@ -105,32 +110,28 @@ void ASpCharacter::NotAiming()
 
 void ASpCharacter::Roll()
 {
-	/*
-	// GetPlayerDirection로 얻은 값을 바탕으로 Rotator 생성
-	FRotator thisRotation = GetActorRotation();
-	thisRotation.Yaw = SpAnimInstance->GetPlayerDirection();
-
-	// Rotator에 따른 Player 몸체 변경
-	GetController()->SetControlRotation(thisRotation);
-
+	// 회전 고정 해제
+	this->bUseControllerRotationYaw = false;
 	
+	
+	if (SpAnimInstance == nullptr)		return;
+	//UE_LOG(LogTemp, Error, TEXT("%f"), SpAnimInstance->GetPlayerDirection());
 
-	APlayerController* PlayerController = Cast<APlayerController>(GetController());
-	if (PlayerController)
+	// PlayerDirection값을 rotator로 적용
+	FRotator ActorRotator = GetActorRotation();
+	FRotator rotator = { ActorRotator.Pitch, ActorRotator.Yaw + SpAnimInstance->GetPlayerDirection(), ActorRotator.Roll };
+	this->SetActorRelativeRotation(rotator);
+
+	/*
+	PlayerController = Cast<APlayerController>(GetController());
+	if (PlayerController != nullptr)
 	{
-		PlayerController->SetControlRotation(PlayerController->GetControlRotation());
+		PlayerController->SetControlRotation({ 0.0f, GetActorRotation().Yaw, 0.0f});
 	}
 	*/
 
-	this->bUseControllerRotationYaw = false;
-	FRotator rotator = { 0,BPMovementAngle,0 };
-	this->SetActorRotation(rotator);
-
 	// AnimInstance Play Montage 
-	if (SpAnimInstance == nullptr)	return;
 	SpAnimInstance->PlayRollMontage();
-
-	//this->bUseControllerRotationYaw = true;
 }
 
 
@@ -146,7 +147,6 @@ void ASpCharacter::Shoot()
 	UGameplayStatics::SpawnSoundAttached(MuzzleSound, SpMesh, TEXT("Muzzle_01"));
 
 	// 1 Get Controller's Location / Rotation
-	AController* PlayerController = GetController();
 	if (PlayerController == nullptr) return;
 
 	FVector Location;
@@ -175,6 +175,11 @@ void ASpCharacter::Shoot()
 
 		// HitActor를 Cast하고, 관련 피격 함수를 실행
 	}
+}
+
+void ASpCharacter::OnRollMontageEnded(UAnimMontage* Montage, bool bInterrupted)
+{
+	this->bUseControllerRotationYaw = true;
 }
 
 

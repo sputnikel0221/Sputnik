@@ -55,6 +55,11 @@ private:
 
 	UPROPERTY()
 		class USpAnimInstance* SpAnimInstance;
+	UPROPERTY()
+		class APlayerController* PlayerController;
+
+	UFUNCTION()
+		void OnRollMontageEnded(UAnimMontage* Montage, bool bInterrupted);
 
 	// SpringArm Lerp
 	UPROPERTY()

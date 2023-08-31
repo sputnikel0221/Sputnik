@@ -43,6 +43,5 @@ void USpAnimInstance::PlayRollMontage()
 
 float USpAnimInstance::GetPlayerDirection()
 {
-	UE_LOG(LogTemp, Warning, TEXT("%f"), this->GetCurveValue("Movement Angle"));
-	return this->GetCurveValue("Movement Angle");
+	return playerDirection;
 }
