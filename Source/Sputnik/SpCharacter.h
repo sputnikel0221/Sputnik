@@ -62,6 +62,11 @@ private:
 	UFUNCTION()
 		void OnRollMontageEnded(UAnimMontage* Montage, bool bInterrupted);
 
+	UFUNCTION()
+		void LerpCamera(FRotator End);
+	FRotator EndRot;
+	bool bInterpolatingCamera = false;
+
 	// SpringArm Lerp
 	UPROPERTY()
 		class USpringArmComponent* SpArm;

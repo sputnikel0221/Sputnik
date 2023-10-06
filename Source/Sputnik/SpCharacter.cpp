@@ -28,6 +28,10 @@ void ASpCharacter::BeginPlay()
 
 	// get Current SpringArm
 	SpArm = this->FindComponentByClass<USpringArmComponent>();
+
+	// 분리 설정
+	this->bUseControllerRotationYaw = true;
+	//SpArm->bUsePawnControlRotation = false; // 추가
 }
 
 void ASpCharacter::PostInitializeComponents()
@@ -47,12 +51,27 @@ void ASpCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	//Get BPMovementAngle 
-	float curAngle = SpAnimInstance->GetCurveValue("Movement Angle");
-	if (curAngle < -0.2f || 0.2f < curAngle)
+	// 1 - Lerp Camera with Tick
+	if (bInterpolatingCamera)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("HighHopes"));
-		BPMovementAngle = SpAnimInstance->GetCurveValue("Movement Angle");
+		// StartRot이 필요가 없다.
+		PlayerController = Cast<APlayerController>(GetController());
+		if (PlayerController == nullptr) return;
+
+		FRotator CurrentCameraRotation = PlayerController->GetControlRotation();
+
+		// 현재 카메라 회전값을 목표 회전값으로 보간.
+		FRotator NewCameraRotation = FMath::RInterpTo(CurrentCameraRotation, EndRot, DeltaTime, 3.0f); // InterpolationSpeed
+
+		// 보간된 회전값을 카메라에 설정.
+		PlayerController->SetControlRotation(NewCameraRotation);
+
+		// 목표 회전값에 도달하면 보간 상태를 종료.
+		if (CurrentCameraRotation.Equals(EndRot, 0.5f))	// 0.2의 각도까지 오차범위
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Lerp END"));
+			bInterpolatingCamera = false;
+		}
 	}
 }
 
@@ -79,12 +98,15 @@ void ASpCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 
 void ASpCharacter::MoveForward(float AxisValue)
 {
+	//if (!bIsRolling) - 사용하면 부자연.
 	AddMovementInput(GetActorForwardVector() * AxisValue);
+	LerpCamera(GetCapsuleComponent()->GetComponentRotation());
 }
 
 void ASpCharacter::MoveRight(float AxisValue)
 {
 	AddMovementInput(GetActorRightVector() * AxisValue);
+	LerpCamera(GetCapsuleComponent()->GetComponentRotation());
 }
 
 void ASpCharacter::Aiming()
@@ -99,7 +121,7 @@ void ASpCharacter::Aiming()
 	DeltaSec = GetWorld()->GetDeltaSeconds();
 
 	if (SpAnimInstance == nullptr)	return;
-	
+
 	if (!SpAnimInstance->getbAiming())
 	{
 		SpAnimInstance->changeAming();
@@ -145,22 +167,21 @@ void ASpCharacter::Roll()
 	// 회전 고정 해제
 	this->bUseControllerRotationYaw = false;
 
-
 	if (SpAnimInstance == nullptr)		return;
 	//UE_LOG(LogTemp, Error, TEXT("%f"), SpAnimInstance->GetPlayerDirection());
 
-	// PlayerDirection값을 rotator로 적용
+	// PlayerDirection값을 rotator로 적용, 플레이어를 돌림
 	FRotator ActorRotator = GetActorRotation();
 	FRotator rotator = { ActorRotator.Pitch, ActorRotator.Yaw + SpAnimInstance->GetPlayerDirection(), ActorRotator.Roll };
 	this->SetActorRelativeRotation(rotator);
 
 	// AnimInstance Play Montage 
 	SpAnimInstance->PlayRollMontage();
-
 }
 
 void ASpCharacter::BlockKey()
 {
+	this->EnableInput(PlayerController);
 	bBlockRolling = false;
 }
 
@@ -209,12 +230,21 @@ void ASpCharacter::Shoot()
 
 void ASpCharacter::OnRollMontageEnded(UAnimMontage* Montage, bool bInterrupted)
 {
+	LerpCamera(GetCapsuleComponent()->GetComponentRotation());
+
 	// 설정 원래대로
 	this->bUseControllerRotationYaw = true;
 	bIsRolling = false;
 
+	// 구르기 중 구르기 방지
 	FTimerHandle TimerHandle;
 	GetWorldTimerManager().SetTimer(TimerHandle, this, &ASpCharacter::BlockKey, 0.2f, false);
+}
+
+void ASpCharacter::LerpCamera(FRotator End)
+{
+	EndRot = End;
+	bInterpolatingCamera = true;
 }
 
 
