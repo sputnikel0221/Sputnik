@@ -69,7 +69,7 @@ void ASpCharacter::Tick(float DeltaTime)
 		// 목표 회전값에 도달하면 보간 상태를 종료.
 		if (CurrentCameraRotation.Equals(EndRot, 0.5f))	// 0.2의 각도까지 오차범위
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Lerp END"));
+			//UE_LOG(LogTemp, Warning, TEXT("Lerp END"));
 			bInterpolatingCamera = false;
 		}
 	}
@@ -191,7 +191,7 @@ void ASpCharacter::Shoot()
 	{
 		return;
 	}
-	UE_LOG(LogTemp, Error, TEXT("%d : %d"), SpAnimInstance->getbAiming(), bIsRolling);
+	//UE_LOG(LogTemp, Error, TEXT("%d : %d"), SpAnimInstance->getbAiming(), bIsRolling);
 
 	// Muzzle Effect & Sound
 	UGameplayStatics::SpawnEmitterAttached(MuzzleEffect, SpMesh, TEXT("Muzzle_01"));
