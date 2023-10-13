@@ -10,3 +10,8 @@ void USpEnemyAnimInstance::BeginPlay()
 USpEnemyAnimInstance::USpEnemyAnimInstance()
 {
 }
+
+void USpEnemyAnimInstance::setbIsDead()
+{
+	bIsDead = true;
+}

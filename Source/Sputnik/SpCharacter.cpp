@@ -10,12 +10,18 @@
 #include "SpPlayerController.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "TimerManager.h"
+#include "CharacterStatComponent.h"
+#include "Engine/DamageEvents.h" 
+#include "SpEnemy.h"
 
 // Sets default values
 ASpCharacter::ASpCharacter()
 {
 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+
+	// 오류가 발생하는 코드 왜? - 생성자에서만 사용 가능
+	CharacterStat = CreateDefaultSubobject<UCharacterStatComponent>(TEXT("SpCharacterStatComp"));
 }
 
 // Called when the game starts or when spawned
@@ -32,6 +38,7 @@ void ASpCharacter::BeginPlay()
 	// 분리 설정
 	this->bUseControllerRotationYaw = true;
 	//SpArm->bUsePawnControlRotation = false; // 추가
+
 }
 
 void ASpCharacter::PostInitializeComponents()
@@ -44,6 +51,19 @@ void ASpCharacter::PostInitializeComponents()
 
 	// GetPlayerController 
 	PlayerController = Cast<APlayerController>(GetController());
+
+	// Delegate 실행 == CharacterComponent의 델리게이트가 실행되면 실행될 것을 미리 엮어 둔다.
+	CharacterStat->OnHpIsZero.AddUObject(this, &ASpCharacter::OnHpIsZeroFunc);
+}
+
+// 얼마나 데미지가 들어가는지 확인하는 함수
+float ASpCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, 
+	AController* EventInstigator, AActor* DamageCauser)
+{
+	float Damage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+
+	CharacterStat->SetDamage(Damage); // 1 현재-Damage 진행 / 2 Zero시, Delegate 실행
+	return Damage;
 }
 
 // Called every frame
@@ -224,6 +244,14 @@ void ASpCharacter::Shoot()
 		AActor* HitActor = Hit.GetActor();
 		if (HitActor == nullptr) return;
 
+		ASpEnemy* EnemyActor = Cast<ASpEnemy>(HitActor);
+		if (EnemyActor == nullptr) return;		
+
+		// 플레이어가 공격한 Actor에 대해서 TakeDamage 실행
+		FDamageEvent DamageEvent;
+		// HitActor에게 Damage를 입힌다.
+		EnemyActor->TakeDamage(CharacterStat->GetAttack(), DamageEvent, GetController(), this);
+		UE_LOG(LogTemp, Warning, TEXT("Hit Actor : % s"), *HitActor->GetName());
 		// HitActor를 Cast하고, 관련 피격 함수를 실행
 	}
 }
@@ -247,6 +275,32 @@ void ASpCharacter::LerpCamera(FRotator End)
 	bInterpolatingCamera = true;
 }
 
+// Delegate1
+void ASpCharacter::OnHpIsZeroFunc()
+{
+	UE_LOG(LogTemp, Error, TEXT("===DIE==="));
+
+	if (GetMesh() != nullptr)
+	{
+		SpAnimInstance->setbIsDead();
+	}
+
+	// AIController의 빙의를 종료하여 BT도 종료 시킴
+	AController* SpController = GetController();
+	if (SpController)
+	{
+		//SpController->UnPossess();
+	}
+
+	// 3초 뒤 Dead함수
+	FTimerHandle DeadTimerHandle;
+	GetWorld()->GetTimerManager().SetTimer(DeadTimerHandle, this, &ASpCharacter::Dead, 3.0f, false);
+}
+
+void ASpCharacter::Dead()
+{
+	Destroy();
+}
 
 
 

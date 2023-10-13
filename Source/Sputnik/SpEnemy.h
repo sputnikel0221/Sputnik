@@ -14,10 +14,13 @@ class SPUTNIK_API ASpEnemy : public ACharacter
 public:
 	// Sets default values for this character's properties
 	ASpEnemy();
+	virtual float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent,
+		AController* EventInstigator, AActor* DamageCauser) override;
 
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+	virtual void PostInitializeComponents() override;
 
 public:	
 	// Called every frame
@@ -30,4 +33,13 @@ public:
 		TSubclassOf<class ASpProjectile> SpProjectileClass;
 
 	void Shoot();
+
+private:
+	UPROPERTY(VisibleAnywhere, Category = "CharacterStat")
+		class UCharacterStatComponent* EnemyStat;
+	void Dead();
+
+private:
+	UFUNCTION()
+		void OnHpIsZeroFunc();
 };

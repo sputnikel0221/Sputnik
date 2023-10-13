@@ -35,6 +35,11 @@ bool USpAnimInstance::getbAiming()
 	return bIsAiming;
 }
 
+void USpAnimInstance::setbIsDead()
+{
+	bIsDead = true;
+}
+
 // 직접 받은 RollMontage를 실행
 void USpAnimInstance::PlayRollMontage()
 {

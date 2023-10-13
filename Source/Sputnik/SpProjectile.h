@@ -23,4 +23,13 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 	void FireInDirection(const FVector& ShootDirection);
+	UFUNCTION()
+	virtual void NotifyHit(class UPrimitiveComponent* MyComp, AActor* Other, class UPrimitiveComponent* OtherComp, 
+		bool bSelfMoved, FVector HitLocation, FVector HitNormal, FVector NormalImpulse, const FHitResult& Hit) override;
+	void SetAttack(float Attack);
+	virtual void NotifyActorBeginOverlap(AActor* OtherActor) override;
+	void SetProjectileTimer();
+private:
+	float BulletAttack;
+	void DestroyProjectile();
 };

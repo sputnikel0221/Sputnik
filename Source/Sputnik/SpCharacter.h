@@ -20,6 +20,9 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void PostInitializeComponents() override;
 
+public:
+	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser);
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -83,4 +86,18 @@ private:
 
 	bool bIsRolling = false;
 	bool bBlockRolling = false;
+
+	// Actor Component
+	UPROPERTY(VisibleAnywhere, Category = "CharacterStat")
+		class UCharacterStatComponent* CharacterStat;
+
+	void Dead();
+
+
+	// Delegate용 함수들
+private:
+	UFUNCTION()
+		void OnHpIsZeroFunc();
+
+
 };

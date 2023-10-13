@@ -19,13 +19,15 @@ private:
 		bool bIsAiming;
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category = Attack, Meta = (AllowPrivateAccess = true))
 		float playerDirection;
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = Attack, Meta = (AllowPrivateAccess = true))
+		bool bIsDead;
 
 protected:
 	void BeginPlay();
 
 public:
 	USpEnemyAnimInstance();
-	void changeAming();
+	void setbIsDead();
 	bool getbAiming();
 
 public:

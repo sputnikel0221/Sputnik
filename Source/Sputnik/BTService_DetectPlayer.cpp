@@ -49,8 +49,9 @@ void UBTService_DetectPlayer::TickNode(UBehaviorTreeComponent& OwnerComp, uint8*
 		for (auto OverlapResult : OverlapResults)
 		{
 			ASpCharacter* OverlappedCharacter = Cast<ASpCharacter>(OverlapResult.GetActor());
-
-			if (OverlappedCharacter && OverlappedCharacter->GetController()->IsPlayerController())
+						
+			
+			if (OverlappedCharacter) //&& OverlappedCharacter->GetController()->IsPlayerController()
 			{
 				OwnerComp.GetBlackboardComponent()->SetValueAsObject(TEXT("ChasedTarget"), OverlappedCharacter);
 				DrawDebugSphere(World, Center, DetectRadius, 16, FColor::Green, false, 0.2f);
@@ -73,7 +74,7 @@ void UBTService_DetectPlayer::TickNode(UBehaviorTreeComponent& OwnerComp, uint8*
 				}
 				*/
 
-				UE_LOG(LogTemp, Warning, TEXT("%d"), OwnerComp.GetBlackboardComponent()->GetValueAsBool(TEXT("AttackDistance")));
+				//UE_LOG(LogTemp, Warning, TEXT("%d"), OwnerComp.GetBlackboardComponent()->GetValueAsBool(TEXT("AttackDistance")));
 				return;
 			}
 			else

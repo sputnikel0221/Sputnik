@@ -19,6 +19,8 @@ private:
 		bool bIsAiming;
 		UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category = Attack, Meta = (AllowPrivateAccess = true))
 			float playerDirection;
+		UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = Attack, Meta = (AllowPrivateAccess = true))
+			bool bIsDead;
 
 protected:
 	void BeginPlay();
@@ -27,6 +29,7 @@ public:
 	USpAnimInstance();
 	void changeAming();
 	bool getbAiming();
+	void setbIsDead();
 
 public :
 	void PlayRollMontage();
