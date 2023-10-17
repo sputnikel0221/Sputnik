@@ -53,7 +53,7 @@ void ASpCharacter::PostInitializeComponents()
 	PlayerController = Cast<APlayerController>(GetController());
 
 	// Delegate 실행 == CharacterComponent의 델리게이트가 실행되면 실행될 것을 미리 엮어 둔다.
-	CharacterStat->OnHpIsZero.AddUObject(this, &ASpCharacter::OnHpIsZeroFunc);
+	CharacterStat->OnHPIsZero.AddUObject(this, &ASpCharacter::OnHpIsZeroFunc);
 }
 
 // 얼마나 데미지가 들어가는지 확인하는 함수
@@ -93,6 +93,9 @@ void ASpCharacter::Tick(float DeltaTime)
 			bInterpolatingCamera = false;
 		}
 	}
+
+	// Progress Bar
+	PlayerAttackBar = FMath::Clamp<float>(PlayerAttackBar + PlayerAttackRestore, 0.0f, PlayerAttackTiming);
 }
 
 // Called to bind functionality to input
@@ -137,6 +140,9 @@ void ASpCharacter::Aiming()
 		return;
 	}
 
+	ASpPlayerController* PController = Cast<ASpPlayerController>(GetController());
+	PController->ZoomInCrosshair();
+
 	UE_LOG(LogTemp, Warning, TEXT("Aiming"));
 	DeltaSec = GetWorld()->GetDeltaSeconds();
 
@@ -158,6 +164,9 @@ void ASpCharacter::NotAiming()
 		UE_LOG(LogTemp, Error, TEXT("NotAiming - Block"));
 		return;
 	}
+
+	ASpPlayerController* PController = Cast<ASpPlayerController>(GetController());
+	PController->ZoomOutCrosshair();
 
 	DeltaSec = GetWorld()->GetDeltaSeconds();
 
@@ -205,6 +214,11 @@ void ASpCharacter::BlockKey()
 	bBlockRolling = false;
 }
 
+float ASpCharacter::GetAttackBarRatio()
+{
+	return PlayerAttackBar / PlayerAttackTiming;
+}
+
 void ASpCharacter::Shoot()
 {
 	if (!SpAnimInstance->getbAiming() || bIsRolling)
@@ -242,18 +256,42 @@ void ASpCharacter::Shoot()
 		UGameplayStatics::SpawnSoundAtLocation(GetWorld(), ImpactSound, Hit.Location);
 
 		AActor* HitActor = Hit.GetActor();
-		if (HitActor == nullptr) return;
+		if (HitActor == nullptr)
+		{
+			PlayerAttackBar = 0.0f;
+			return;
+		}
 
 		ASpEnemy* EnemyActor = Cast<ASpEnemy>(HitActor);
-		if (EnemyActor == nullptr) return;		
+		if (EnemyActor == nullptr)
+		{
+			PlayerAttackBar = 0.0f;
+			return;
+		}
 
 		// 플레이어가 공격한 Actor에 대해서 TakeDamage 실행
 		FDamageEvent DamageEvent;
-		// HitActor에게 Damage를 입힌다.
-		EnemyActor->TakeDamage(CharacterStat->GetAttack(), DamageEvent, GetController(), this);
+		// HitActor에게 Damage를 입힌다. GetAttackBarRatio를 Attack에 곱함
+
+		// 크리티컬
+		float Attack_x = GetAttackBarRatio();
+		if (0.66 <= Attack_x && Attack_x <= 0.74)
+		{
+			UGameplayStatics::SpawnSoundAttached(CritMuzzleSound, SpMesh, TEXT("Muzzle_01"));
+			UGameplayStatics::SpawnEmitterAttached(CritMuzzleEffect, SpMesh, TEXT("Muzzle_01"));
+			Attack_x = 1.5f;
+			UE_LOG(LogTemp, Error, TEXT("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"));
+		}
+
+		UE_LOG(LogTemp, Warning, TEXT("AttackRatio Is %f / Final Damage Is %f"), GetAttackBarRatio(), CharacterStat->GetAttack() * Attack_x);
+
+		EnemyActor->TakeDamage(CharacterStat->GetAttack() * Attack_x, DamageEvent, GetController(), this);
 		UE_LOG(LogTemp, Warning, TEXT("Hit Actor : % s"), *HitActor->GetName());
 		// HitActor를 Cast하고, 관련 피격 함수를 실행
 	}
+
+	// AttackBar
+	PlayerAttackBar = 0.0f;
 }
 
 void ASpCharacter::OnRollMontageEnded(UAnimMontage* Montage, bool bInterrupted)

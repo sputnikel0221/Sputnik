@@ -23,4 +23,11 @@ protected:
 
 public:
 	void RollRotate(FRotator direction);
+
+	UPROPERTY()
+		UUserWidget* HUD;
+
+public:
+	void ZoomInCrosshair();
+	void ZoomOutCrosshair();
 };

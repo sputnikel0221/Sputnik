@@ -48,7 +48,6 @@ void UCharacterStatComponent::TickComponent(float DeltaTime, ELevelTick TickType
 
 void UCharacterStatComponent::SetNewLevel(int32 NewLevel)
 {
-	UE_LOG(LogTemp, Error, TEXT("%s :SET NEWWWWWWWWWWWWWWWWWWWW Level"), *GetOwner()->GetName());
 	auto SpGameInstance = Cast<USpGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
 
 	// 중요
@@ -58,22 +57,33 @@ void UCharacterStatComponent::SetNewLevel(int32 NewLevel)
 	}
 
 	CurrentStatData = SpGameInstance->GetCharacterStatData(NewLevel);
-	UE_LOG(LogTemp, Error, TEXT("%s : CurrentStatData Successfully Maked !!"), *GetOwner()->GetName());
 
 	if (nullptr != CurrentStatData)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("%s : NoCurrent Level STAT !!!!!!!!!!!"), *GetOwner()->GetName());
+		UE_LOG(LogTemp, Warning, TEXT("%s : Exist Level STAT +++++++"), *GetOwner()->GetName());
 		Level = NewLevel;
 		CurrentHP = CurrentStatData->MaxHP;
+
+		// -
+		SetHP(CurrentStatData->MaxHP);
+		UE_LOG(LogTemp, Warning, TEXT("%s : Setted Level STAT !+++++++"), *GetOwner()->GetName());
 	}
 	else
 	{
 		// 디버그
+		UE_LOG(LogTemp, Warning, TEXT("NO STAT DATA !+++++++"));
 	}
 }
 
 void UCharacterStatComponent::SetDamage(float NewDamage)
 {
+	if (CurrentStatData != nullptr)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("_-_-_-_- %f : SetDamage"), CurrentHP - NewDamage);
+		SetHP(FMath::Clamp<float>(CurrentHP - NewDamage, 0.0f, CurrentStatData->MaxHP));
+	}
+
+	/*
 	UE_LOG(LogTemp, Warning, TEXT("SetDamage"));
 
 	if (CurrentStatData == nullptr)
@@ -90,13 +100,46 @@ void UCharacterStatComponent::SetDamage(float NewDamage)
 	// 델리게이트 실행
 	if (CurrentHP <= 0.0f)
 	{
-		OnHpIsZero.Broadcast();
+		OnHPIsZero.Broadcast();
 	}
+	*/
 }
 
 float UCharacterStatComponent::GetAttack()
 {
 	if (CurrentStatData == nullptr) return 0.0f;
 	return CurrentStatData->Attack;
+}
+
+
+//
+void UCharacterStatComponent::SetHP(float NewHP)
+{
+	//UE_LOG(LogTemp, Warning, TEXT("Enemy HP is %f"),NewHP);
+	
+	UE_LOG(LogTemp, Error, TEXT("(%f  ==  %f)"), CurrentHP, NewHP);
+
+	CurrentHP = NewHP;
+	OnHPChanged.Broadcast();
+
+	UE_LOG(LogTemp, Error, TEXT("(%f)"), CurrentHP);
+
+	if (CurrentHP < KINDA_SMALL_NUMBER)
+	{
+		CurrentHP = 0.0f;
+		OnHPIsZero.Broadcast();
+	}
+}
+
+float UCharacterStatComponent::GetHPRatio()
+{
+	if (CurrentStatData == nullptr)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Cant Get HP Ratio"));
+		return 0.0f;
+	}
+
+	//UE_LOG(LogTemp, Error, TEXT("%f == %f PRERERERERERERERE"), CurrentHP,CurrentHP / CurrentStatData->MaxHP);
+	return (CurrentStatData->MaxHP < KINDA_SMALL_NUMBER) ? 0.0f : (CurrentHP / CurrentStatData->MaxHP);
 }
 

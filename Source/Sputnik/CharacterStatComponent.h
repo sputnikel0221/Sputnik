@@ -6,6 +6,7 @@
 #include "CharacterStatComponent.generated.h"
 
 DECLARE_MULTICAST_DELEGATE(FOnHPIsZeroDelegate);
+DECLARE_MULTICAST_DELEGATE(FOnHPChangedDelegate);
 
 UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
 class SPUTNIK_API UCharacterStatComponent : public UActorComponent
@@ -43,5 +44,14 @@ public:
 	void SetDamage(float NewDamage);
 	// 스탯 중 Attack값만 가져옴
 	float GetAttack();
-	FOnHPIsZeroDelegate OnHpIsZero;
+	FOnHPIsZeroDelegate OnHPIsZero;
+
+	//HP Widget
+public:
+	void SetHP(float NewHP);
+
+	UFUNCTION(BlueprintCallable)
+	float GetHPRatio();
+
+	FOnHPChangedDelegate OnHPChanged;
 };

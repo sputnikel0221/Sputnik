@@ -6,7 +6,7 @@
 #include "BehaviorTree/BTService.h"
 #include "BTService_DetectPlayer.generated.h"
 
-
+//DECLARE_MULTICAST_DELEGATE(FIsDetectedDelegate);
 /**
  * 
  */
@@ -17,6 +17,7 @@ class SPUTNIK_API UBTService_DetectPlayer : public UBTService
 
 public:
 	UBTService_DetectPlayer();
+	//FIsDetectedDelegate IsDetected;
 
 protected:
 	// Tick

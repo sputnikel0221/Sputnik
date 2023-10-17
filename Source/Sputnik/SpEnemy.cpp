@@ -6,6 +6,12 @@
 #include "CharacterStatComponent.h"
 #include "SpEnemyAnimInstance.h"
 #include "TimerManager.h"
+#include "HPBarWidget.h"
+#include "Components/WidgetComponent.h"
+#include "BehaviorTree/BlackboardComponent.h"
+#include "SpEnemyController.h"
+#include "SpEnemyAnimInstance.h"
+#include "AIController.h"
 
 // Sets default values
 ASpEnemy::ASpEnemy()
@@ -22,13 +28,31 @@ void ASpEnemy::BeginPlay()
 	Super::BeginPlay();
 
 	this->bUseControllerRotationYaw = false;
+
+	UWidgetComponent* Widgetcomponent = Cast<UWidgetComponent>(GetComponentByClass(UWidgetComponent::StaticClass()));
+	UHPBarWidget* HPBarWidget = Cast<UHPBarWidget>(Widgetcomponent->GetWidget());
+	/*
+	UHPBarWidget* HPBarWidget = nullptr;
+	HPBarWidget = Cast<UHPBarWidget>(GetComponentByClass(UHPBarWidget::StaticClass()));
+	*/
+
+	UE_LOG(LogTemp, Error, TEXT("Enemy ============"))
+	if (HPBarWidget)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Tex HP Bar Widget Component============"))
+		HPBarWidget->BindCharacterStat(EnemyStat);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("NO HP Bar Widget Component============"))
+	}
 }
 
 void ASpEnemy::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
 
-	EnemyStat->OnHpIsZero.AddUObject(this, &ASpEnemy::OnHpIsZeroFunc);
+	EnemyStat->OnHPIsZero.AddUObject(this, &ASpEnemy::OnHpIsZeroFunc);
 }
 
 // Called every frame
@@ -36,6 +60,22 @@ void ASpEnemy::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	if(!showHP && !isTakeDamage)
+	{
+		// 사라짐
+		UWidgetComponent* Widgetcomponent = Cast<UWidgetComponent>(GetComponentByClass(UWidgetComponent::StaticClass()));
+		UHPBarWidget* HPBarWidget = Cast<UHPBarWidget>(Widgetcomponent->GetWidget());
+
+		HPBarWidget->SetVisibility(ESlateVisibility::Hidden);
+	}
+	else
+	{
+		// 표시
+		UWidgetComponent* Widgetcomponent = Cast<UWidgetComponent>(GetComponentByClass(UWidgetComponent::StaticClass()));
+		UHPBarWidget* HPBarWidget = Cast<UHPBarWidget>(Widgetcomponent->GetWidget());
+
+		HPBarWidget->SetVisibility(ESlateVisibility::Visible);
+	}
 }
 
 // Called to bind functionality to input
@@ -130,10 +170,36 @@ void ASpEnemy::OnHpIsZeroFunc()
 float ASpEnemy::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent,
 	AController* EventInstigator, AActor* DamageCauser)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Damage Taken"));
+	UE_LOG(LogTemp, Warning, TEXT("Enemy Damage Taken"));
 	float Damage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 
+	UE_LOG(LogTemp, Warning, TEXT("DamageAmount Is %f  / Damage Is %f "), DamageAmount, Damage);
 	EnemyStat->SetDamage(Damage); // 1 현재-Damage 진행 / 2 Zero시, Delegate 실행
+
+
+	// UI Visible 관련 변수
+	isTakeDamage = true;
+	showHP = true;
+	
+	// 1.5초 이후 showHP는 false가 된다.
+	FTimerHandle showHPTimerHandle;
+	GetWorld()->GetTimerManager().SetTimer(showHPTimerHandle, this, &ASpEnemy::showHPFalse, 1.5f, false);
+
 	return Damage;
 }
+
+void ASpEnemy::showHPFalse()
+{
+	showHP = false;
+
+	// 2.5초 안에 대미지를 받아야 UI유지됨
+	FTimerHandle isTakeDamageFalseTimerHandle;
+	GetWorld()->GetTimerManager().SetTimer(isTakeDamageFalseTimerHandle, this, &ASpEnemy::isTakeDamageFalse, 2.5f, false);
+}
+
+void ASpEnemy::isTakeDamageFalse()
+{
+	isTakeDamage = false;
+}
+
 

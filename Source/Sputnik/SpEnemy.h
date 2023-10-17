@@ -42,4 +42,15 @@ private:
 private:
 	UFUNCTION()
 		void OnHpIsZeroFunc();
+
+	// UI Visible 관련
+private:
+	bool isTakeDamage = false;
+	bool showHP = false;
+	void showHPFalse();
+	void isTakeDamageFalse();
+	/*
+	UPROPERTY(VisibleAnywhere, Category = UI)
+		class UWidgetComponent* HPBarWidgetComponent;
+		*/
 };

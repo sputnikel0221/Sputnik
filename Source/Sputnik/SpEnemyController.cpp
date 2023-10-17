@@ -34,11 +34,13 @@ void ASpEnemyController::Tick(float DeltaSeconds)
 
 	if(ChasedTarget != nullptr)
 	{
+		//UE_LOG(LogTemp, Error, TEXT("+++ Set Player Location"));
 		GetBlackboardComponent()->SetValueAsVector(TEXT("PlayerLocation"), PlayerPawn->GetActorLocation());
 		GetBlackboardComponent()->SetValueAsVector(TEXT("LastPlayerLocation"), PlayerPawn->GetActorLocation());
 	}
 	else
 	{
+		//UE_LOG(LogTemp, Error, TEXT("--- Clear Player Location"));
 		GetBlackboardComponent()->ClearValue(TEXT("PlayerLocation"));
 	}
 }

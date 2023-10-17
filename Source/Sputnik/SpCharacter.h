@@ -56,6 +56,10 @@ private:
 		USoundBase* MuzzleSound;
 	UPROPERTY(EditAnywhere)
 		USoundBase* ImpactSound;
+	UPROPERTY(EditAnywhere)
+		USoundBase* CritMuzzleSound;
+	UPROPERTY(EditAnywhere)
+		UParticleSystem* CritMuzzleEffect;
 
 	UPROPERTY()
 		class USpAnimInstance* SpAnimInstance;
@@ -99,5 +103,11 @@ private:
 	UFUNCTION()
 		void OnHpIsZeroFunc();
 
-
+private:
+	float PlayerAttackTiming = 3.0f;
+	float PlayerAttackBar = PlayerAttackTiming;
+	float PlayerAttackRestore = 0.02f;
+public:
+	UFUNCTION(Blueprintcallable)
+		float GetAttackBarRatio();
 };

@@ -54,15 +54,18 @@ void UBTService_DetectPlayer::TickNode(UBehaviorTreeComponent& OwnerComp, uint8*
 			if (OverlappedCharacter) //&& OverlappedCharacter->GetController()->IsPlayerController()
 			{
 				OwnerComp.GetBlackboardComponent()->SetValueAsObject(TEXT("ChasedTarget"), OverlappedCharacter);
+				//UE_LOG(LogTemp, Error, TEXT(" % s : IS OVERLAPPED"), *OverlappedCharacter->GetName());
 				DrawDebugSphere(World, Center, DetectRadius, 16, FColor::Green, false, 0.2f);
 
 				// Player의 위치를 지속적으로 갱신
+				// 아래줄 왜 주석했지?
 				//OwnerComp.GetBlackboardComponent()->SetValueAsVector(TEXT("PlayerLocation"), OverlappedCharacter->GetActorLocation());
 				OwnerComp.GetBlackboardComponent()->SetValueAsBool(TEXT("ChaseFlag"), true);
 				//OwnerComp.GetAIOwner()->SetFocus(OverlappedCharacter, 0);
 
 				float AttackDistance = FVector::Distance(OverlappedCharacter->GetActorLocation(), ControlledPawn->GetActorLocation());
 				
+
 				/*
 				if (AttackDistance <= 400.0f)
 				{
@@ -79,8 +82,9 @@ void UBTService_DetectPlayer::TickNode(UBehaviorTreeComponent& OwnerComp, uint8*
 			}
 			else
 			{
-				//UE_LOG(LogTemp, Error, TEXT("Chased is nullptr"));
 				OwnerComp.GetBlackboardComponent()->SetValueAsObject(TEXT("ChasedTarget"), nullptr);
+				
+				//UE_LOG(LogTemp, Error, TEXT("Chased is nullptr"));
 				//OwnerComp.GetBlackboardComponent()->SetValueAsBool(TEXT("ChaseFlag"), false);
 				//OwnerComp.GetAIOwner()->ClearFocus(0);
 			}
